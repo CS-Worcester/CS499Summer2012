@@ -187,7 +187,7 @@ public class TaskListAdapter extends ArrayAdapter<Task> {
 			holder.due_date.setVisibility(View.VISIBLE);
 			
 			if (task.hasDateDue())
-				holder.due_date.setText(DateFormat.format("'Due:' MM/dd/yy 'at' h:mm AA", task.getDateDueCal()));
+				holder.due_date.setText(DateFormat.format("'Due' MM/dd/yy h:mmAA", task.getDateDueCal()));
 			else
 				holder.due_date.setText("");
 		}

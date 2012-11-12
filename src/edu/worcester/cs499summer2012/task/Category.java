@@ -28,15 +28,14 @@ public class Category {
 
 	public Category() {}
 	
-	public Category(String name, int color) {
+	public Category(String name, int color, long updated) {
 		this.name = name;
 		this.color = color;
 	}
 	
 	public Category(int id, String name, int color, long updated) {
-		this(name, color);
+		this(name, color, updated);
 		this.id = id;
-		this.updated = updated;
 	}
 	
 	public Category(Category c) {
