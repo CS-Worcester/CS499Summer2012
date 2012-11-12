@@ -19,21 +19,23 @@
 
 package edu.worcester.cs499summer2012.task;
 
+import android.graphics.Color;
+
 public class Category {
 
 	private int id;
 	private String name;
-	private int color;
+	private String color;
 	private long updated;
 
 	public Category() {}
 	
-	public Category(String name, int color, long updated) {
+	public Category(String name, String color, long updated) {
 		this.name = name;
 		this.color = color;
 	}
 	
-	public Category(int id, String name, int color, long updated) {
+	public Category(int id, String name, String color, long updated) {
 		this(name, color, updated);
 		this.id = id;
 	}
@@ -58,19 +60,23 @@ public class Category {
 		this.name = name;
 	}
 
-	public int getColor() {
+	public String getColorString() {
 		return color;
 	}
+	
+	public int getColorInt() {
+		return Color.parseColor(color);
+	}
 
-	public void setColor(int color) {
+	public void setColorString(String color) {
 		this.color = color;
 	}
 	
-	public long getUpdated(){
+	public long getUpdated() {
 		return updated;
 	}
 	
-	public void setUpdated(long updated){
+	public void setUpdated(long updated) {
 		this.updated = updated;
 	}
 }

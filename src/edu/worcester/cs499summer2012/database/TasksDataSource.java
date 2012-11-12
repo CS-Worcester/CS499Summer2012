@@ -171,10 +171,10 @@ public class TasksDataSource {
 	 * number is equal to the highest current ID + 1.
 	 * @return the next available task ID to be assigned to a new task
 	 */
-	public int getNextID() {
+	public int getNextID(String table) {
 
 		String selectQuery = "SELECT MAX(" + DatabaseHandler.KEY_ID +
-				") FROM " + DatabaseHandler.TABLE_TASKS;
+				") FROM " + table;
 		open();
 		Cursor cursor = db.rawQuery(selectQuery, null);
 
@@ -285,15 +285,14 @@ public class TasksDataSource {
 	/**
 	 * Insert Category in the categories table
 	 * @param c
-	 * @param color
 	 */
-	public void addCategory(Category c, int color){
+	public void addCategory(Category c){
 		open();
 		ContentValues values = new ContentValues();
 		values.put(DatabaseHandler.KEY_ID, c.getID());
 		values.put(DatabaseHandler.KEY_NAME, c.getName());
-		values.put(DatabaseHandler.KEY_COLOR, c.getColor());
-		values.put(DatabaseHandler.KEY_UPDATED, c.getUpdated());
+		values.put(DatabaseHandler.KEY_COLOR, c.getColorString());
+		values.put(DatabaseHandler.KEY_MODIFICATION_DATE, c.getUpdated());
 		// Inserting row
 		db.insert(DatabaseHandler.TABLE_CATEGORIES, null, values);
 		close();
@@ -322,12 +321,13 @@ public class TasksDataSource {
 		ContentValues values = new ContentValues();
 		values.put(DatabaseHandler.KEY_ID, c.getID());
 		values.put(DatabaseHandler.KEY_NAME, c.getName());
-		values.put(DatabaseHandler.KEY_COLOR, c.getColor());
-		values.put(DatabaseHandler.KEY_UPDATED, c.getUpdated());
+		values.put(DatabaseHandler.KEY_COLOR, c.getColorString());
+		values.put(DatabaseHandler.KEY_MODIFICATION_DATE, c.getUpdated());
 
 		// updating row
 		int i = db.update(DatabaseHandler.TABLE_CATEGORIES, values, 
 				DatabaseHandler.KEY_ID + " = " + c.getID(), null);
+		close();
 		return i;
 	}
 
@@ -342,7 +342,7 @@ public class TasksDataSource {
 				DatabaseHandler.KEY_ID,
 				DatabaseHandler.KEY_NAME,
 				DatabaseHandler.KEY_COLOR,
-				DatabaseHandler.KEY_UPDATED	}, 
+				DatabaseHandler.KEY_MODIFICATION_DATE	}, 
 				DatabaseHandler.KEY_ID + " = " + id,
 				null, null, null, null);
 		if (cursor != null)
@@ -350,12 +350,35 @@ public class TasksDataSource {
 		Category c = new Category(
 				cursor.getInt(0),
 				cursor.getString(1),
-				cursor.getInt(2),
+				cursor.getString(2),
 				cursor.getLong(3));
 		close();
 		cursor.close();
 		return c;
 	}
+	
+	public ArrayList<CharSequence> getCategoryNames() {
+		ArrayList<CharSequence> names = new ArrayList<CharSequence>();
+
+		// Select All Query
+		String selectQuery = "SELECT * FROM " + DatabaseHandler.TABLE_CATEGORIES;
+
+		open();
+		Cursor cursor = db.rawQuery(selectQuery, null);
+
+		// Loop through all rows and add to list
+		if (cursor.moveToFirst()) {
+			do {
+				// Add name to list
+				names.add(cursor.getString(1));
+			} while (cursor.moveToNext());
+		}
+
+		cursor.close();
+		close();
+		
+		return names;
+	}	
 
 	/************************************************************
 	 * 	Google Tasks											*

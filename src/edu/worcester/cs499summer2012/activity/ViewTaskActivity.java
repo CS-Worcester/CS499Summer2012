@@ -29,6 +29,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
@@ -78,7 +79,9 @@ public class ViewTaskActivity extends SherlockActivity implements OnClickListene
         setContentView(R.layout.activity_view_task);
         
         // Allow Action bar icon to act as a button
-        getSupportActionBar().setHomeButtonEnabled(true);
+        ActionBar action_bar = getSupportActionBar();
+        action_bar.setHomeButtonEnabled(true);
+        action_bar.setDisplayHomeAsUpEnabled(true);
         
         // Get instance of the db
         data_source = TasksDataSource.getInstance(this);

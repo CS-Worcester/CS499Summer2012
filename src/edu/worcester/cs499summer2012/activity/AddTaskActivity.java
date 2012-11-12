@@ -43,12 +43,14 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
 
 import edu.worcester.cs499summer2012.R;
+import edu.worcester.cs499summer2012.database.DatabaseHandler;
 import edu.worcester.cs499summer2012.database.TasksDataSource;
 import edu.worcester.cs499summer2012.task.Task;
 
@@ -77,6 +79,9 @@ public class AddTaskActivity extends SherlockActivity implements
 	// Intent to be returned
     private Intent intent;
     
+    // Database
+    private TasksDataSource data_source;
+    
     // UI elements
     private CheckBox has_due_date;
     private Button edit_due_date;
@@ -87,6 +92,7 @@ public class AddTaskActivity extends SherlockActivity implements
     private CheckBox has_repetition;   
     private TextView repeats;
     private EditText repeat_interval;
+    private Spinner category;
     private Spinner repeat_type;
     private CheckBox stop_repeating;
     private Button edit_stop_repeating_date;
@@ -192,9 +198,8 @@ public class AddTaskActivity extends SherlockActivity implements
     			notes.getText().toString());
     	
     	// Assign the task a unique ID and store it in the database
-    	TasksDataSource tds = TasksDataSource.getInstance(this);
-    	task.setID(tds.getNextID());
-    	tds.addTask(task);
+    	task.setID(data_source.getNextID(DatabaseHandler.TABLE_TASKS));
+    	data_source.addTask(task);
     	
     	// Create the return intent and add the task ID
     	intent = new Intent(this, MainActivity.class);    	
@@ -212,6 +217,8 @@ public class AddTaskActivity extends SherlockActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_task);
         
+        data_source = TasksDataSource.getInstance(this);
+        
         // Initialize the fields that can be enabled/disabled or listened to
         has_due_date = (CheckBox) findViewById(R.id.checkbox_has_due_date);
         edit_due_date = (Button) findViewById(R.id.button_edit_due_date);
@@ -222,6 +229,7 @@ public class AddTaskActivity extends SherlockActivity implements
         has_repetition = (CheckBox) findViewById(R.id.checkbox_has_repetition);   
         repeats = (TextView) findViewById(R.id.text_add_task_repeats);
         repeat_interval = (EditText) findViewById(R.id.edit_add_task_repeat_interval);
+        category = (Spinner) findViewById(R.id.spinner_add_task_category);
         repeat_type = (Spinner) findViewById(R.id.spinner_add_task_repeat_type);
         stop_repeating = (CheckBox) findViewById(R.id.checkbox_stop_repeating);
         edit_stop_repeating_date = (Button) findViewById(R.id.button_edit_stop_repeating_date);
@@ -270,8 +278,17 @@ public class AddTaskActivity extends SherlockActivity implements
         stop_repeating_date.setVisibility(View.GONE);
         
         // Allow Action bar icon to act as a button
-        getSupportActionBar().setHomeButtonEnabled(true);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        ActionBar action_bar = getSupportActionBar();
+        action_bar.setHomeButtonEnabled(true);
+        action_bar.setDisplayHomeAsUpEnabled(true);
+        
+        // Populate the category spinner
+        ArrayAdapter<CharSequence> category_adapter = 
+        		new ArrayAdapter<CharSequence>(this, 
+        				android.R.layout.simple_spinner_item, 
+        				data_source.getCategoryNames());
+        category_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        category.setAdapter(category_adapter);
         
         // Populate the repeat type spinner
         ArrayAdapter<CharSequence> repeat_type_adapter = 
