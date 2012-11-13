@@ -35,6 +35,7 @@ public class Category {
 	public Category(String name, int color, long updated) {
 		this.name = name;
 		this.color = color;
+		this.updated = updated;
 	}
 	
 	public Category(int id, String name, int color, long updated) {
