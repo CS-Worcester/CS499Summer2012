@@ -222,14 +222,14 @@ public class MainActivity extends SherlockListActivity implements
     		about_builder.setTitle("About Task Butler");
     		about_builder.setMessage(R.string.dialog_about);
     		about_builder.setCancelable(true);
-    		about_builder.setNeutralButton("OK", new DialogInterface.OnClickListener() {
+    		about_builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
     			
     			@Override
     			public void onClick(DialogInterface dialog, int id) {
     				dialog.dismiss();
     		   	}
     		});
-    		about_builder.setPositiveButton("Source", new DialogInterface.OnClickListener() {
+    		about_builder.setNeutralButton("Source", new DialogInterface.OnClickListener() {
 				
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
@@ -238,8 +238,7 @@ public class MainActivity extends SherlockListActivity implements
 					dialog.dismiss();
 				}
 			});
-    		AlertDialog about_alert = about_builder.create();
-    		about_alert.show();
+    		about_builder.create().show();
     		return true;
     		
     	default:

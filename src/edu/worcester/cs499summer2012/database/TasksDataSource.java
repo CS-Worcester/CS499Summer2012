@@ -291,7 +291,7 @@ public class TasksDataSource {
 		ContentValues values = new ContentValues();
 		values.put(DatabaseHandler.KEY_ID, c.getID());
 		values.put(DatabaseHandler.KEY_NAME, c.getName());
-		values.put(DatabaseHandler.KEY_COLOR, c.getColorString());
+		values.put(DatabaseHandler.KEY_COLOR, c.getColor());
 		values.put(DatabaseHandler.KEY_MODIFICATION_DATE, c.getUpdated());
 		// Inserting row
 		db.insert(DatabaseHandler.TABLE_CATEGORIES, null, values);
@@ -321,7 +321,7 @@ public class TasksDataSource {
 		ContentValues values = new ContentValues();
 		values.put(DatabaseHandler.KEY_ID, c.getID());
 		values.put(DatabaseHandler.KEY_NAME, c.getName());
-		values.put(DatabaseHandler.KEY_COLOR, c.getColorString());
+		values.put(DatabaseHandler.KEY_COLOR, c.getColor());
 		values.put(DatabaseHandler.KEY_MODIFICATION_DATE, c.getUpdated());
 
 		// updating row
@@ -350,7 +350,7 @@ public class TasksDataSource {
 		Category c = new Category(
 				cursor.getInt(0),
 				cursor.getString(1),
-				cursor.getString(2),
+				cursor.getInt(2),
 				cursor.getLong(3));
 		close();
 		cursor.close();
@@ -372,7 +372,7 @@ public class TasksDataSource {
 				Category category = new Category(
 						cursor.getInt(0),
 						cursor.getString(1),
-						cursor.getString(2),
+						cursor.getInt(2),
 						cursor.getLong(3));
 				// Add category to list
 				categories.add(category);

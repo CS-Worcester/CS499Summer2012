@@ -157,12 +157,11 @@ public class TaskListAdapter extends ArrayAdapter<Task> {
 		holder.name.setEnabled(!is_complete);
 		
 		// Set category
-		// TODO: Implement this
 		if (is_complete)
 			holder.category.setVisibility(View.GONE);
 		else {
 			holder.category.setVisibility(View.VISIBLE);
-			holder.category.setBackgroundColor(data_source.getCategory(task.getCategory()).getColorInt());
+			holder.category.setBackgroundColor(data_source.getCategory(task.getCategory()).getColor());
 		}
 		
 		// Set priority

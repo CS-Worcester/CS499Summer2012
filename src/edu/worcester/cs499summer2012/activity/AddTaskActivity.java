@@ -22,14 +22,19 @@ package edu.worcester.cs499summer2012.activity;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
+import yuku.ambilwarna.AmbilWarnaDialog;
+import yuku.ambilwarna.AmbilWarnaDialog.OnAmbilWarnaListener;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -54,14 +59,14 @@ import edu.worcester.cs499summer2012.database.DatabaseHandler;
 import edu.worcester.cs499summer2012.database.TasksDataSource;
 import edu.worcester.cs499summer2012.task.Category;
 import edu.worcester.cs499summer2012.task.Task;
-
 /**
  * Activity for adding a new task.
  * @author Jonathan Hasenzahl
  * @author James Celona
  */
 public class AddTaskActivity extends SherlockActivity implements 
-        OnCheckedChangeListener, OnClickListener, DialogInterface.OnClickListener {
+        OnCheckedChangeListener, OnClickListener, DialogInterface.OnClickListener,
+        OnItemSelectedListener {
 
 	/**************************************************************************
 	 * Static fields and methods                                              *
@@ -72,6 +77,8 @@ public class AddTaskActivity extends SherlockActivity implements
 	public final static int DEFAULT_SECOND = 0;
 	public final static int DEFAULT_MILLISECOND = 0;
 	public final static String DEFAULT_INTERVAL = "1";
+	public final static int DATETIME_DIALOG = 0;
+	public final static int CATEGORY_DIALOG = 1;
     
     /**************************************************************************
      * Private fields                                                         *
@@ -82,6 +89,9 @@ public class AddTaskActivity extends SherlockActivity implements
     
     // Database
     private TasksDataSource data_source;
+    
+    // Category spinner array adapter
+    private ArrayAdapter<Category> category_adapter;
     
     // UI elements
     private CheckBox has_due_date;
@@ -100,12 +110,14 @@ public class AddTaskActivity extends SherlockActivity implements
     private TextView stop_repeating_date;
     private DatePicker date_picker;
     private TimePicker time_picker;
+    private EditText category_name;
     
     // Task properties that are modified by UI elements
     private Calendar due_date_cal;
     private Calendar final_due_date_cal;
     private Calendar stop_repeating_date_cal;
     private int selected_calendar;
+    private int selected_dialog;
     
     /**************************************************************************
 	 * Class methods                                                          *
@@ -283,12 +295,13 @@ public class AddTaskActivity extends SherlockActivity implements
         action_bar.setDisplayHomeAsUpEnabled(true);
         
         // Populate the category spinner
-        ArrayAdapter<Category> category_adapter = 
-        		new ArrayAdapter<Category>(this, 
+        category_adapter = new ArrayAdapter<Category>(this, 
         				android.R.layout.simple_spinner_item, 
         				data_source.getCategories());
+        category_adapter.add(new Category(0, "New category...", 0, Category.NEW_CATEGORY));
         category_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         category.setAdapter(category_adapter);
+        category.setOnItemSelectedListener(this);
         
         // Populate the repeat type spinner
         ArrayAdapter<CharSequence> repeat_type_adapter = 
@@ -459,6 +472,7 @@ public class AddTaskActivity extends SherlockActivity implements
 			time_picker.setCurrentMinute(stop_repeating_date_cal.get(Calendar.MINUTE));
 		}
 		
+		selected_dialog = DATETIME_DIALOG;
 		AlertDialog.Builder picker_dialog = new AlertDialog.Builder(this);
 		picker_dialog.setView(picker_view)
 		             .setTitle("Set date and time")
@@ -474,38 +488,104 @@ public class AddTaskActivity extends SherlockActivity implements
 	
 	@Override
 	public void onClick(DialogInterface dialog, int id) {
-		if (id == DialogInterface.BUTTON_POSITIVE) {
-			switch (selected_calendar) {
-			case R.id.button_edit_due_date:
-				due_date_cal.set(Calendar.YEAR, date_picker.getYear());
-				due_date_cal.set(Calendar.MONTH, date_picker.getMonth());
-				due_date_cal.set(Calendar.DAY_OF_MONTH, date_picker.getDayOfMonth());
-				due_date_cal.set(Calendar.HOUR_OF_DAY, time_picker.getCurrentHour());
-				due_date_cal.set(Calendar.MINUTE, time_picker.getCurrentMinute());
-				due_date.setText(DateFormat.format("'Due:' MM/dd/yy 'at' h:mm AA", 
-						due_date_cal));
-				break;
+		switch (selected_dialog)
+		{
+		case DATETIME_DIALOG:
+			if (id == DialogInterface.BUTTON_POSITIVE) {
+				switch (selected_calendar) {
+				case R.id.button_edit_due_date:
+					due_date_cal.set(Calendar.YEAR, date_picker.getYear());
+					due_date_cal.set(Calendar.MONTH, date_picker.getMonth());
+					due_date_cal.set(Calendar.DAY_OF_MONTH, date_picker.getDayOfMonth());
+					due_date_cal.set(Calendar.HOUR_OF_DAY, time_picker.getCurrentHour());
+					due_date_cal.set(Calendar.MINUTE, time_picker.getCurrentMinute());
+					due_date.setText(DateFormat.format("'Due:' MM/dd/yy 'at' h:mm AA", 
+							due_date_cal));
+					break;
+					
+				case R.id.button_edit_final_due_date:
+					final_due_date_cal.set(Calendar.YEAR, date_picker.getYear());
+					final_due_date_cal.set(Calendar.MONTH, date_picker.getMonth());
+					final_due_date_cal.set(Calendar.DAY_OF_MONTH, date_picker.getDayOfMonth());
+					final_due_date_cal.set(Calendar.HOUR_OF_DAY, time_picker.getCurrentHour());
+					final_due_date_cal.set(Calendar.MINUTE, time_picker.getCurrentMinute());
+					final_due_date.setText(DateFormat.format("'Alarm:' MM/dd/yy 'at' h:mm AA", 
+							final_due_date_cal));
+					break;
 				
-			case R.id.button_edit_final_due_date:
-				final_due_date_cal.set(Calendar.YEAR, date_picker.getYear());
-				final_due_date_cal.set(Calendar.MONTH, date_picker.getMonth());
-				final_due_date_cal.set(Calendar.DAY_OF_MONTH, date_picker.getDayOfMonth());
-				final_due_date_cal.set(Calendar.HOUR_OF_DAY, time_picker.getCurrentHour());
-				final_due_date_cal.set(Calendar.MINUTE, time_picker.getCurrentMinute());
-				final_due_date.setText(DateFormat.format("'Alarm:' MM/dd/yy 'at' h:mm AA", 
-						final_due_date_cal));
-				break;
+				case R.id.button_edit_stop_repeating_date:
+					stop_repeating_date_cal.set(Calendar.YEAR, date_picker.getYear());
+					stop_repeating_date_cal.set(Calendar.MONTH, date_picker.getMonth());
+					stop_repeating_date_cal.set(Calendar.DAY_OF_MONTH, date_picker.getDayOfMonth());
+					stop_repeating_date_cal.set(Calendar.HOUR_OF_DAY, time_picker.getCurrentHour());
+					stop_repeating_date_cal.set(Calendar.MINUTE, time_picker.getCurrentMinute());
+					stop_repeating_date.setText(DateFormat.format("'Ends:' MM/dd/yy 'at' h:mm AA", 
+							stop_repeating_date_cal));
+					break;
+				}
+			} else
+				dialog.cancel();
+			break;
 			
-			case R.id.button_edit_stop_repeating_date:
-				stop_repeating_date_cal.set(Calendar.YEAR, date_picker.getYear());
-				stop_repeating_date_cal.set(Calendar.MONTH, date_picker.getMonth());
-				stop_repeating_date_cal.set(Calendar.DAY_OF_MONTH, date_picker.getDayOfMonth());
-				stop_repeating_date_cal.set(Calendar.HOUR_OF_DAY, time_picker.getCurrentHour());
-				stop_repeating_date_cal.set(Calendar.MINUTE, time_picker.getCurrentMinute());
-				stop_repeating_date.setText(DateFormat.format("'Ends:' MM/dd/yy 'at' h:mm AA", 
-						stop_repeating_date_cal));
-				break;
+		case CATEGORY_DIALOG:
+			if (category_name.getText().toString().equals("")) {
+				// No name, cancel dialog
+				Toast.makeText(this, "Category needs a name!", Toast.LENGTH_SHORT).show();
+				category.setSelection(0);
+				dialog.cancel();
+			} else if (id == DialogInterface.BUTTON_POSITIVE) {
+				AmbilWarnaDialog color_dialog = new AmbilWarnaDialog(this, Color.parseColor("#00FFFFFF"), new OnAmbilWarnaListener() {
+
+					@Override
+					public void onCancel(AmbilWarnaDialog dialog) {
+						category.setSelection(0);
+					}
+
+					@Override
+					public void onOk(AmbilWarnaDialog dialog, int color) {
+						Category new_category = new Category(category_name.getText().toString(), 
+								color, 
+								GregorianCalendar.getInstance().getTimeInMillis());
+						new_category.setID(data_source.getNextID(DatabaseHandler.TABLE_CATEGORIES));
+						data_source.addCategory(new_category);
+						category_adapter.insert(new_category, category_adapter.getCount() - 1);
+						category_adapter.notifyDataSetChanged();
+					}
+				});
+				color_dialog.show();
 			}
+			else
+				category.setSelection(0);
+				dialog.cancel();
+			break;
 		}
+	}
+	
+	/**************************************************************************
+	 * Methods implementing OnItemSelectedListener interface                  *
+	 **************************************************************************/
+
+	@Override
+	public void onItemSelected(AdapterView<?> parent, View view, int position,
+			long id) {
+		if (((Category) category.getItemAtPosition(position)).getID() == Category.NEW_CATEGORY) {
+			selected_dialog = CATEGORY_DIALOG;
+			
+			LayoutInflater li = LayoutInflater.from(this);
+			View category_name_view = li.inflate(R.layout.dialog_category_name, null);
+			category_name = (EditText) category_name_view.findViewById(R.id.edit_category_name);
+			
+			AlertDialog.Builder new_category_builder = new AlertDialog.Builder(this);
+			new_category_builder.setView(category_name_view);
+			new_category_builder.setTitle("Enter category name");
+			new_category_builder.setPositiveButton("Next", this);
+			new_category_builder.setNegativeButton("Cancel", this);
+			new_category_builder.create().show();
+		}
+	}
+
+	@Override
+	public void onNothingSelected(AdapterView<?> parent) {
+		// Do nothing
 	}
 }
