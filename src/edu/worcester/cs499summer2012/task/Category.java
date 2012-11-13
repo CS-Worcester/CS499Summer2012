@@ -43,6 +43,11 @@ public class Category {
 	public Category(Category c) {
 		this(c.id, c.name, c.color, c.updated);
 	}
+	
+	@Override
+	public String toString() {
+		return name;
+	}
 
 	public int getID() {
 		return id;

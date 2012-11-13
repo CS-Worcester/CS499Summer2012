@@ -356,6 +356,34 @@ public class TasksDataSource {
 		cursor.close();
 		return c;
 	}
+
+	public ArrayList<Category> getCategories() {
+		ArrayList<Category> categories = new ArrayList<Category>();
+
+		// Select All Query
+		String selectQuery = "SELECT * FROM " + DatabaseHandler.TABLE_CATEGORIES;
+
+		open();
+		Cursor cursor = db.rawQuery(selectQuery, null);
+
+		// Loop through all rows and add to list
+		if (cursor.moveToFirst()) {
+			do {
+				Category category = new Category(
+						cursor.getInt(0),
+						cursor.getString(1),
+						cursor.getString(2),
+						cursor.getLong(3));
+				// Add category to list
+				categories.add(category);
+			} while (cursor.moveToNext());
+		}
+
+		cursor.close();
+		close();
+		
+		return categories;
+	}
 	
 	public ArrayList<CharSequence> getCategoryNames() {
 		ArrayList<CharSequence> names = new ArrayList<CharSequence>();

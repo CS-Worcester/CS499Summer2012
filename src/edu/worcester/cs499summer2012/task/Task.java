@@ -68,7 +68,6 @@ public class Task implements Parcelable {
 	private boolean isCompleted;
 	private int priority;
 	private int category;
-	//private Category cat;
 	private boolean hasDateDue;
 	private boolean hasFinalDateDue;
 	private boolean isRepeating;
@@ -207,6 +206,7 @@ public class Task implements Parcelable {
 				stopRepeatingDate, notes);
 		this.id = id;
 		this.dateModified = dateModified;
+		updateDateModifiedCal();
 	}
 
 	/**************************************************************************
@@ -217,14 +217,14 @@ public class Task implements Parcelable {
 		if (dateCreatedCal == null)
 			dateCreatedCal = new GregorianCalendar();
 		
-		dateCreatedCal.setTimeInMillis((long) dateCreated);
+		dateCreatedCal.setTimeInMillis(dateCreated);
 	}
 	
 	private void updateDateModifiedCal() {
 		if (dateModifiedCal == null)
 			dateModifiedCal = new GregorianCalendar();
 		
-		dateModifiedCal.setTimeInMillis((long) dateModified);
+		dateModifiedCal.setTimeInMillis(dateModified);
 	}
 	
 	private void updateDateDueCal() {
@@ -237,7 +237,7 @@ public class Task implements Parcelable {
 		if (dateDueCal == null)
 			dateDueCal = new GregorianCalendar();
 		
-		dateDueCal.setTimeInMillis((long) dateDue);
+		dateDueCal.setTimeInMillis(dateDue);
 	}
 	
 	private void updateFinalDateDueCal() {
@@ -250,7 +250,7 @@ public class Task implements Parcelable {
 		if (finalDateDueCal == null)
 			finalDateDueCal = new GregorianCalendar();
 		
-		finalDateDueCal.setTimeInMillis((long) finalDateDue);
+		finalDateDueCal.setTimeInMillis(finalDateDue);
 	}
 	
 	private void updateStopRepeatingDateCal() {
@@ -263,7 +263,7 @@ public class Task implements Parcelable {
 		if (stopRepeatingDateCal == null)
 			stopRepeatingDateCal = new GregorianCalendar();
 		
-		stopRepeatingDateCal.setTimeInMillis((long) stopRepeatingDate);
+		stopRepeatingDateCal.setTimeInMillis(stopRepeatingDate);
 	}
 
 	/**************************************************************************
@@ -288,19 +288,11 @@ public class Task implements Parcelable {
 	}
 
 	/**
-	 * Returns a string representation of the class. Used for writing to file.
-	 * The order of the fields in the string is:
-	 *     Name
-	 *     Is completed
-	 *     Priority
-	 *     Date created
-	 *     Date due
-	 *     Notes
+	 * Returns a string representation of the class.
 	 * @return a string representation of the class
 	 */
 	@Override
 	public String toString() {
-		// TODO: (Jon) Reimplement this method in a more useful form
 		return name;
 	}
 

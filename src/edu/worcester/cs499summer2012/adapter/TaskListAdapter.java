@@ -21,6 +21,7 @@ package edu.worcester.cs499summer2012.adapter;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.GregorianCalendar;
 
 import android.app.Activity;
 import android.text.format.DateFormat;
@@ -68,6 +69,7 @@ public class TaskListAdapter extends ArrayAdapter<Task> {
 	
 	private final Activity activity;
 	private final ArrayList<Task> tasks;
+	private TasksDataSource data_source;
 	private int sort_type;
 	private final Comparator<Task> auto_comparator = new TaskAutoComparator();
 	//private final Comparator<Task> name_comparator = new TaskNameComparator();
@@ -90,7 +92,8 @@ public class TaskListAdapter extends ArrayAdapter<Task> {
 		super(activity, R.layout.row_task, tasks);
 		this.activity = activity;
 		this.tasks = tasks;
-		this.setNotifyOnChange(true);
+		data_source = TasksDataSource.getInstance(this.activity);
+		setNotifyOnChange(true);
 	}
 	
 	/**************************************************************************
@@ -123,9 +126,9 @@ public class TaskListAdapter extends ArrayAdapter<Task> {
 				public void onClick(View v) {
 					Task task = (Task) view_holder.is_completed.getTag();
 					task.toggleIsCompleted();
+					task.setDateModified(GregorianCalendar.getInstance().getTimeInMillis());
 					
 					// Update DB
-					TasksDataSource data_source = TasksDataSource.getInstance(activity);
 					data_source.updateTask(task);
 					
 					sort();
@@ -157,8 +160,10 @@ public class TaskListAdapter extends ArrayAdapter<Task> {
 		// TODO: Implement this
 		if (is_complete)
 			holder.category.setVisibility(View.GONE);
-		else
+		else {
 			holder.category.setVisibility(View.VISIBLE);
+			holder.category.setBackgroundColor(data_source.getCategory(task.getCategory()).getColorInt());
+		}
 		
 		// Set priority
 		if (is_complete)

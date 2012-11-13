@@ -52,6 +52,7 @@ import com.actionbarsherlock.view.MenuItem;
 import edu.worcester.cs499summer2012.R;
 import edu.worcester.cs499summer2012.database.DatabaseHandler;
 import edu.worcester.cs499summer2012.database.TasksDataSource;
+import edu.worcester.cs499summer2012.task.Category;
 import edu.worcester.cs499summer2012.task.Task;
 
 /**
@@ -149,8 +150,7 @@ public class AddTaskActivity extends SherlockActivity implements
     	}
     	
     	// Get task category
-    	// TODO: Implement this
-    	int category = 0;
+    	int categoryID = ((Category) category.getSelectedItem()).getID();
     	
     	// Get repeat interval
     	int interval = 1;
@@ -184,7 +184,7 @@ public class AddTaskActivity extends SherlockActivity implements
     			name, 
     			is_completed.isChecked(), 
     			priority, 
-    			category,
+    			categoryID,
     			has_due_date.isChecked(),
     			has_final_due_date.isChecked(),
     			has_repetition.isChecked(),
@@ -283,10 +283,10 @@ public class AddTaskActivity extends SherlockActivity implements
         action_bar.setDisplayHomeAsUpEnabled(true);
         
         // Populate the category spinner
-        ArrayAdapter<CharSequence> category_adapter = 
-        		new ArrayAdapter<CharSequence>(this, 
+        ArrayAdapter<Category> category_adapter = 
+        		new ArrayAdapter<Category>(this, 
         				android.R.layout.simple_spinner_item, 
-        				data_source.getCategoryNames());
+        				data_source.getCategories());
         category_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         category.setAdapter(category_adapter);
         
