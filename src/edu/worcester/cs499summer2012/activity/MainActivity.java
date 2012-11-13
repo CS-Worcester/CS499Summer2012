@@ -19,12 +19,11 @@
 
 package edu.worcester.cs499summer2012.activity;
 
-import java.util.GregorianCalendar;
-
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.View;
@@ -52,16 +51,16 @@ import edu.worcester.cs499summer2012.task.Task;
  * @author Jonathan Hasenzahl
  * @author James Celona
  */
-public class MainActivity extends SherlockListActivity implements OnItemLongClickListener, 
-		ActionMode.Callback {
+public class MainActivity extends SherlockListActivity implements 
+		OnItemLongClickListener, ActionMode.Callback {
 
 	/**************************************************************************
 	 * Static fields and methods                                              *
 	 **************************************************************************/
-	
-	public static final String TASK_FILE_NAME = "tasks";
+
 	public static final String PREF_SORT_TYPE = "sort_type";
 	public static final int ADD_TASK_REQUEST = 0;
+	public static final int VIEW_TASK_REQUEST = 1;
 	public static final int DELETE_MODE_SINGLE = 0;
 	public static final int DELETE_MODE_FINISHED = 1;
 	public static final int DELETE_MODE_ALL = 2;
@@ -93,13 +92,12 @@ public class MainActivity extends SherlockListActivity implements OnItemLongClic
     {
     	AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setMessage(question)
-		       .setCancelable(false)
+		       .setCancelable(true)
 		       .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
 		    	   public void onClick(DialogInterface dialog, int id) {
 		    		   int deleted_tasks;
 		    		   switch (mode) {
 		    		   case DELETE_MODE_SINGLE:
-		    			   toast("Task id: " + adapter.getItem(selected_task).getID());
 		    			   data_source.deleteTask(adapter.getItem(selected_task));
 		    			   adapter.remove(adapter.getItem(selected_task));
 		    			   toast("Task deleted");
@@ -148,7 +146,6 @@ public class MainActivity extends SherlockListActivity implements OnItemLongClic
     	
     	// Open the database
         data_source = TasksDataSource.getInstance(getApplicationContext());
-        //data_source.open();
         
         // Create an adapter for the task list
 		adapter = new TaskListAdapter(this, data_source.getAllTasks());
@@ -165,18 +162,6 @@ public class MainActivity extends SherlockListActivity implements OnItemLongClic
     	
     	// Set up a long item click listener
     	getListView().setOnItemLongClickListener(this);
-    }
-    
-    @Override
-    protected void onResume() {
-    	//data_source.open();
-    	super.onResume();
-    }
-    
-    @Override
-    protected void onPause() {
-    	//data_source.close();
-    	super.onPause();
     }
     
     @Override
@@ -232,8 +217,29 @@ public class MainActivity extends SherlockListActivity implements OnItemLongClic
     		startActivity(new Intent(this, SettingsActivity.class));
     		return true;
     		
-    	case R.id.menu_main_help:
-    		toast("Help coming soon!");
+    	case R.id.menu_main_about:
+    		AlertDialog.Builder about_builder = new AlertDialog.Builder(this);
+    		about_builder.setTitle("About Task Butler");
+    		about_builder.setMessage(R.string.dialog_about);
+    		about_builder.setCancelable(true);
+    		about_builder.setNeutralButton("OK", new DialogInterface.OnClickListener() {
+    			
+    			@Override
+    			public void onClick(DialogInterface dialog, int id) {
+    				dialog.dismiss();
+    		   	}
+    		});
+    		about_builder.setPositiveButton("Source", new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/CS-Worcester/CS499Summer2012"));
+					startActivity(browserIntent);
+					dialog.dismiss();
+				}
+			});
+    		AlertDialog about_alert = about_builder.create();
+    		about_alert.show();
     		return true;
     		
     	default:
@@ -244,28 +250,31 @@ public class MainActivity extends SherlockListActivity implements OnItemLongClic
     @Override
     public void onListItemClick(ListView list_view, View view, int position, 
     		long id) {
-    	adapter.getItem(position).toggleIsCompleted();
+    	/*adapter.getItem(position).toggleIsCompleted();
     	adapter.getItem(position).setDateModified(GregorianCalendar.getInstance().getTimeInMillis());
     	
     	// Update database
     	data_source.updateTask(adapter.getItem(position));
     	
     	// Sort the list
-    	adapter.sort();
+    	adapter.sort();*/
+    	
+    	Intent intent = new Intent(this, ViewTaskActivity.class);
+    	intent.putExtra(Task.EXTRA_TASK_ID, adapter.getItem(position).getID());
+    	startActivityForResult(intent, VIEW_TASK_REQUEST);
     }
     
     @Override
 	public void onActivityResult(int request_code, int result_code, 
     		Intent intent) {
-    	if (request_code == ADD_TASK_REQUEST && result_code == RESULT_OK) {
-    		Task task = intent.getParcelableExtra(AddTaskActivity.EXTRA_TASK);
-    		
-    		// Set the ID for the new task and update database
-    		//data_source.open();
-    		task.setID(data_source.getNextID());
-    		data_source.addTask(task);
+    	if ((request_code == ADD_TASK_REQUEST || request_code == VIEW_TASK_REQUEST)
+    			&& result_code == RESULT_OK) {
+    		// Get the task from the db using the ID in the intent
+    		Task task = data_source.getTask(intent.getIntExtra(Task.EXTRA_TASK_ID, 0));
     		
     		// Update the adapter
+    		if (request_code == VIEW_TASK_REQUEST)
+    			adapter.remove(task);
     		adapter.add(task);
     		adapter.sort();
     		
