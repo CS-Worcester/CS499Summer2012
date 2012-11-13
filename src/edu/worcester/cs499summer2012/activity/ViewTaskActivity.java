@@ -122,7 +122,7 @@ public class ViewTaskActivity extends SherlockActivity implements OnClickListene
         // Set category (if category ID is not 1, i.e. no category)
         if (task.getCategory() != 1) {
         	Category category = data_source.getCategory(task.getCategory());
-        	((ImageView) findViewById(R.id.image_category)).setBackgroundColor(category.getColorInt());
+        	((ImageView) findViewById(R.id.image_category)).setBackgroundColor(category.getColor());
         	((TextView) findViewById(R.id.text_category)).setText(category.getName());
         }
         

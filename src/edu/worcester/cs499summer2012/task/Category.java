@@ -23,19 +23,21 @@ import android.graphics.Color;
 
 public class Category {
 
+	public static final int NEW_CATEGORY = 0;
+	
 	private int id;
 	private String name;
-	private String color;
+	private int color;
 	private long updated;
 
 	public Category() {}
 	
-	public Category(String name, String color, long updated) {
+	public Category(String name, int color, long updated) {
 		this.name = name;
 		this.color = color;
 	}
 	
-	public Category(int id, String name, String color, long updated) {
+	public Category(int id, String name, int color, long updated) {
 		this(name, color, updated);
 		this.id = id;
 	}
@@ -65,15 +67,16 @@ public class Category {
 		this.name = name;
 	}
 
-	public String getColorString() {
+	
+	public int getColor() {
 		return color;
 	}
-	
-	public int getColorInt() {
-		return Color.parseColor(color);
-	}
 
-	public void setColorString(String color) {
+	public void setColor(String color) {
+		this.color = Color.parseColor(color);
+	}
+	
+	public void setColor(int color) {
 		this.color = color;
 	}
 	

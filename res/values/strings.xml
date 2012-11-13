@@ -48,6 +48,7 @@
     <!-- EditText items -->
     <string name="edit_task_name">Enter task name</string>
     <string name="edit_task_notes">You can enter notes here</string>
+    <string name="edit_category_name">Enter category name</string>
 
     <!-- RadioButton items -->
     <string name="radio_trivial">Trivial</string>

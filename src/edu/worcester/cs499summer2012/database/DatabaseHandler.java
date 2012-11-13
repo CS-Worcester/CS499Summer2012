@@ -26,6 +26,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.graphics.Color;
 
 /**
  * Creates SQLite table for storing tasks to a database. DO NOT call this class directly
@@ -35,7 +36,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DatabaseHandler extends SQLiteOpenHelper {
 
 	// Database Version
-	private static final int DATABASE_VERSION = 5;
+	private static final int DATABASE_VERSION = 6;
 
 	// Database Name
 	private static final String DATABASE_NAME = "TaskButler.db";
@@ -62,7 +63,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	public static final String KEY_FINAL_DUE_DATE = "finalDueDate";					 // DATETIME
 	public static final String KEY_STOP_REPEATING_DATE = "stopRepeatingDate"; 		 // DATETIME
 	public static final String KEY_NOTES = "notes"; 								 // TEXT, can be null
-	public static final String KEY_COLOR = "color"; 								 // TEXT, used in category table
+	public static final String KEY_COLOR = "color"; 								 // INTEGER, used in category table
 
 	public DatabaseHandler(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -93,7 +94,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		String create_categories_table = "CREATE TABLE " + TABLE_CATEGORIES + "(" 
 				+ KEY_ID + " INTEGER PRIMARY KEY,"
 				+ KEY_NAME + " TEXT,"
-				+ KEY_COLOR + " TEXT,"
+				+ KEY_COLOR + " INTEGER,"
 				+ KEY_MODIFICATION_DATE + " DATETIME)";
 				
 		db.execSQL(create_tasks_table);
@@ -103,7 +104,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		ContentValues values = new ContentValues();
 		values.put(KEY_ID, 1);
 		values.put(KEY_NAME, "No category");
-		values.put(KEY_COLOR, "#00FFFFFF");
+		values.put(KEY_COLOR, Color.parseColor("#00FFFFFF"));
 		values.put(KEY_MODIFICATION_DATE, GregorianCalendar.getInstance().getTimeInMillis());
 		
 		db.insert(TABLE_CATEGORIES, null, values);
