@@ -40,8 +40,13 @@ public class Task implements Parcelable {
 	 * Static fields and methods                                              *
 	 **************************************************************************/
 	
+	// Extra intent flags
+	public static final String EXTRA_TASK = "edu.worcester.cs499summer2012.TASK";
+	public static final String EXTRA_TASK_ID = "edu.worcester.cs499summer2012.TASK_ID";
+	
 	// Priority constants
 	public static final String[] LABELS = {"Trivial", "Normal", "Urgent"};
+	public static final String[] REPEAT_LABELS = {"minutes", "hours", "days", "weeks", "months", "years"};
 	public static final int TRIVIAL = 0;
 	public static final int NORMAL = 1;
 	public static final int URGENT = 2;
@@ -201,6 +206,7 @@ public class Task implements Parcelable {
 				stopRepeatingDate, notes);
 		this.id = id;
 		this.dateModified = dateModified;
+		updateDateModifiedCal();
 	}
 
 	/**************************************************************************
@@ -211,14 +217,14 @@ public class Task implements Parcelable {
 		if (dateCreatedCal == null)
 			dateCreatedCal = new GregorianCalendar();
 		
-		dateCreatedCal.setTimeInMillis((long) dateCreated);
+		dateCreatedCal.setTimeInMillis(dateCreated);
 	}
 	
 	private void updateDateModifiedCal() {
 		if (dateModifiedCal == null)
 			dateModifiedCal = new GregorianCalendar();
 		
-		dateModifiedCal.setTimeInMillis((long) dateModified);
+		dateModifiedCal.setTimeInMillis(dateModified);
 	}
 	
 	private void updateDateDueCal() {
@@ -231,7 +237,7 @@ public class Task implements Parcelable {
 		if (dateDueCal == null)
 			dateDueCal = new GregorianCalendar();
 		
-		dateDueCal.setTimeInMillis((long) dateDue);
+		dateDueCal.setTimeInMillis(dateDue);
 	}
 	
 	private void updateFinalDateDueCal() {
@@ -244,7 +250,7 @@ public class Task implements Parcelable {
 		if (finalDateDueCal == null)
 			finalDateDueCal = new GregorianCalendar();
 		
-		finalDateDueCal.setTimeInMillis((long) finalDateDue);
+		finalDateDueCal.setTimeInMillis(finalDateDue);
 	}
 	
 	private void updateStopRepeatingDateCal() {
@@ -257,7 +263,7 @@ public class Task implements Parcelable {
 		if (stopRepeatingDateCal == null)
 			stopRepeatingDateCal = new GregorianCalendar();
 		
-		stopRepeatingDateCal.setTimeInMillis((long) stopRepeatingDate);
+		stopRepeatingDateCal.setTimeInMillis(stopRepeatingDate);
 	}
 
 	/**************************************************************************
@@ -265,13 +271,12 @@ public class Task implements Parcelable {
 	 **************************************************************************/ 	
 	/**
 	 * Compares this object to another. To return true, the compared object must
-	 * have the same class and identical private fields.
+	 * have the same class and identical IDs.
 	 * @param o the object to be compared with
 	 * @return true if the objects are equal, false otherwise
 	 */
 	@Override
 	public boolean equals(Object o) {
-		// TODO: Needs to be updated
 		if (o == this)
 			return true;
 		if (o == null)
@@ -279,43 +284,15 @@ public class Task implements Parcelable {
 		if (o.getClass() != this.getClass())
 			return false;
 
-		Task t = (Task) o;
-		if (!this.name.equals(t.name))
-			return false;
-		if (this.isCompleted != t.isCompleted)
-			return false;
-		if (this.priority != t.priority)
-			return false;
-		if (this.category != t.category)
-			return false;
-		if (this.dateCreated != t.dateCreated)
-			return false;
-		if (this.dateModified != t.dateModified)
-			return false;
-		if (this.dateDue != t.dateDue)
-			return false;
-		if (this.finalDateDue != t.finalDateDue)
-			return false;
-		if (!this.notes.equals(t.notes))
-			return false;
-
-		return true;
+		return ((Task) o).id == this.id;
 	}
 
 	/**
-	 * Returns a string representation of the class. Used for writing to file.
-	 * The order of the fields in the string is:
-	 *     Name
-	 *     Is completed
-	 *     Priority
-	 *     Date created
-	 *     Date due
-	 *     Notes
+	 * Returns a string representation of the class.
 	 * @return a string representation of the class
 	 */
 	@Override
 	public String toString() {
-		// TODO: (Jon) Reimplement this method in a more useful form
 		return name;
 	}
 

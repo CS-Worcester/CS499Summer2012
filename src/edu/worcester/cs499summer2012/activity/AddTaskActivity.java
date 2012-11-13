@@ -1,7 +1,7 @@
 /* 
  * AddTaskActivity.java
  * 
- * Copyright 2012 Jonathan Hasenzahl, James Celona
+ * Copyright 2012 Jonathan Hasenzahl, James Celona, Dhimitraq Jorgji
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,12 +43,16 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
 
 import edu.worcester.cs499summer2012.R;
+import edu.worcester.cs499summer2012.database.DatabaseHandler;
+import edu.worcester.cs499summer2012.database.TasksDataSource;
+import edu.worcester.cs499summer2012.task.Category;
 import edu.worcester.cs499summer2012.task.Task;
 
 /**
@@ -62,11 +66,7 @@ public class AddTaskActivity extends SherlockActivity implements
 	/**************************************************************************
 	 * Static fields and methods                                              *
 	 **************************************************************************/
-	
-	/**
-	 * Label for the extra task parcel which will be added to the returned intent
-	 */
-	public final static String EXTRA_TASK = "edu.worcester.cs499summer2012.TASK";
+
 	public final static int DEFAULT_HOUR = 12;
 	public final static int DEFAULT_MINUTE = 0;
 	public final static int DEFAULT_SECOND = 0;
@@ -80,6 +80,9 @@ public class AddTaskActivity extends SherlockActivity implements
 	// Intent to be returned
     private Intent intent;
     
+    // Database
+    private TasksDataSource data_source;
+    
     // UI elements
     private CheckBox has_due_date;
     private Button edit_due_date;
@@ -90,6 +93,7 @@ public class AddTaskActivity extends SherlockActivity implements
     private CheckBox has_repetition;   
     private TextView repeats;
     private EditText repeat_interval;
+    private Spinner category;
     private Spinner repeat_type;
     private CheckBox stop_repeating;
     private Button edit_stop_repeating_date;
@@ -115,7 +119,8 @@ public class AddTaskActivity extends SherlockActivity implements
      */
     public boolean addTask() {
     	// Get task name
-    	EditText name = (EditText) findViewById(R.id.edit_add_task_name);
+    	EditText et_name = (EditText) findViewById(R.id.edit_add_task_name);
+    	String name = et_name.getText().toString();
     	
     	// If there is no task name, don't create the task
     	if (name.equals(""))
@@ -145,8 +150,7 @@ public class AddTaskActivity extends SherlockActivity implements
     	}
     	
     	// Get task category
-    	// TODO: Implement this
-    	int category = 0;
+    	int categoryID = ((Category) category.getSelectedItem()).getID();
     	
     	// Get repeat interval
     	int interval = 1;
@@ -177,10 +181,10 @@ public class AddTaskActivity extends SherlockActivity implements
     	    	
     	// Create the task
     	Task task = new Task(
-    			name.getText().toString(), 
+    			name, 
     			is_completed.isChecked(), 
     			priority, 
-    			category,
+    			categoryID,
     			has_due_date.isChecked(),
     			has_final_due_date.isChecked(),
     			has_repetition.isChecked(),
@@ -193,9 +197,13 @@ public class AddTaskActivity extends SherlockActivity implements
     			stop_repeating_date_ms,
     			notes.getText().toString());
     	
-    	// Create the return intent and add the task
+    	// Assign the task a unique ID and store it in the database
+    	task.setID(data_source.getNextID(DatabaseHandler.TABLE_TASKS));
+    	data_source.addTask(task);
+    	
+    	// Create the return intent and add the task ID
     	intent = new Intent(this, MainActivity.class);    	
-    	intent.putExtra(EXTRA_TASK, task);
+    	intent.putExtra(Task.EXTRA_TASK_ID, task.getID());
     	
     	return true;
     }
@@ -209,6 +217,8 @@ public class AddTaskActivity extends SherlockActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_task);
         
+        data_source = TasksDataSource.getInstance(this);
+        
         // Initialize the fields that can be enabled/disabled or listened to
         has_due_date = (CheckBox) findViewById(R.id.checkbox_has_due_date);
         edit_due_date = (Button) findViewById(R.id.button_edit_due_date);
@@ -219,6 +229,7 @@ public class AddTaskActivity extends SherlockActivity implements
         has_repetition = (CheckBox) findViewById(R.id.checkbox_has_repetition);   
         repeats = (TextView) findViewById(R.id.text_add_task_repeats);
         repeat_interval = (EditText) findViewById(R.id.edit_add_task_repeat_interval);
+        category = (Spinner) findViewById(R.id.spinner_add_task_category);
         repeat_type = (Spinner) findViewById(R.id.spinner_add_task_repeat_type);
         stop_repeating = (CheckBox) findViewById(R.id.checkbox_stop_repeating);
         edit_stop_repeating_date = (Button) findViewById(R.id.button_edit_stop_repeating_date);
@@ -252,8 +263,32 @@ public class AddTaskActivity extends SherlockActivity implements
         edit_final_due_date.setOnClickListener(this);
         edit_stop_repeating_date.setOnClickListener(this);
         
+        // Hide certain due date items to start
+        edit_due_date.setVisibility(View.GONE);
+        due_date.setVisibility(View.GONE);
+        has_final_due_date.setVisibility(View.GONE);
+        edit_final_due_date.setVisibility(View.GONE);
+        final_due_date.setVisibility(View.GONE);
+        has_repetition.setVisibility(View.GONE);
+        repeats.setVisibility(View.GONE);
+        repeat_interval.setVisibility(View.GONE);
+        repeat_type.setVisibility(View.GONE);
+        stop_repeating.setVisibility(View.GONE);
+        edit_stop_repeating_date.setVisibility(View.GONE);
+        stop_repeating_date.setVisibility(View.GONE);
+        
         // Allow Action bar icon to act as a button
-        getSupportActionBar().setHomeButtonEnabled(true);
+        ActionBar action_bar = getSupportActionBar();
+        action_bar.setHomeButtonEnabled(true);
+        action_bar.setDisplayHomeAsUpEnabled(true);
+        
+        // Populate the category spinner
+        ArrayAdapter<Category> category_adapter = 
+        		new ArrayAdapter<Category>(this, 
+        				android.R.layout.simple_spinner_item, 
+        				data_source.getCategories());
+        category_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        category.setAdapter(category_adapter);
         
         // Populate the repeat type spinner
         ArrayAdapter<CharSequence> repeat_type_adapter = 
@@ -262,7 +297,6 @@ public class AddTaskActivity extends SherlockActivity implements
         				android.R.layout.simple_spinner_item);
         repeat_type_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         repeat_type.setAdapter(repeat_type_adapter);
-        repeat_type.setEnabled(false);
     }
     
     @Override
@@ -304,18 +338,22 @@ public class AddTaskActivity extends SherlockActivity implements
 		switch (buttonView.getId()) {
 		case R.id.checkbox_has_due_date:
 			if (isChecked) {
-				edit_due_date.setEnabled(true);
-				due_date.setEnabled(true);
+				// Make edit button, textview, and other checkboxes visible
+				edit_due_date.setVisibility(View.VISIBLE);
+				due_date.setVisibility(View.VISIBLE);
 				due_date.setText(DateFormat.format("'Due:' MM/dd/yy 'at' h:mm AA", 
 						due_date_cal));
-				has_final_due_date.setEnabled(true);
-				has_repetition.setEnabled(true);
+				has_final_due_date.setVisibility(View.VISIBLE);
+				has_repetition.setVisibility(View.VISIBLE);
+				
+				// Pop up date-time dialog as if user had clicked edit button
+				onClick(edit_due_date);
 			} else {
-				edit_due_date.setEnabled(false);
-				due_date.setEnabled(false);
-				due_date.setText(R.string.text_no_due_date);
-				has_final_due_date.setEnabled(false);
-				has_repetition.setEnabled(false);
+				// Hide edit button, textview, and other checkboxes
+				edit_due_date.setVisibility(View.GONE);
+				due_date.setVisibility(View.GONE);
+				has_final_due_date.setVisibility(View.GONE);
+				has_repetition.setVisibility(View.GONE);
 				
 				// Uncheck final due date and repetition boxes
 				if (has_final_due_date.isChecked())
@@ -327,30 +365,35 @@ public class AddTaskActivity extends SherlockActivity implements
 			
 		case R.id.checkbox_has_final_due_date:
 			if (isChecked) {
-				edit_final_due_date.setEnabled(true);
-				final_due_date.setEnabled(true);
+				// Make edit button and textview visible
+				edit_final_due_date.setVisibility(View.VISIBLE);
+				final_due_date.setVisibility(View.VISIBLE);
 				final_due_date.setText(DateFormat.format("'Alarm:' MM/dd/yy 'at' h:mm AA", 
 						final_due_date_cal));
+				
+				// Pop up date-time dialog as if user had clicked edit button
+				onClick(edit_final_due_date);
 			} else {
-				edit_final_due_date.setEnabled(false);
-				final_due_date.setEnabled(false);
-				final_due_date.setText(R.string.text_no_final_due_date);
+				// Hide edit button and textview
+				edit_final_due_date.setVisibility(View.GONE);
+				final_due_date.setVisibility(View.GONE);
 			}
 			break;
 			
 		case R.id.checkbox_has_repetition:
 			if (isChecked) {
-				repeats.setEnabled(true);
-				repeat_interval.setEnabled(true);
+				// Make textview, edittext, spinner, and checkbox visible
+				repeats.setVisibility(View.VISIBLE);
+				repeat_interval.setVisibility(View.VISIBLE);
 				repeat_interval.setText(DEFAULT_INTERVAL);
-				repeat_type.setEnabled(true);
-				stop_repeating.setEnabled(true);
+				repeat_type.setVisibility(View.VISIBLE);
+				stop_repeating.setVisibility(View.VISIBLE);
 			} else {
-				repeats.setEnabled(false);
-				repeat_interval.setEnabled(false);
-				repeat_interval.setText("");
-				repeat_type.setEnabled(false);
-				stop_repeating.setEnabled(false);
+				// Hide textview, edittext, spinner, and checkbox
+				repeats.setVisibility(View.GONE);
+				repeat_interval.setVisibility(View.GONE);
+				repeat_type.setVisibility(View.GONE);
+				stop_repeating.setVisibility(View.GONE);
 				
 				// Uncheck stop repeating box
 				if (stop_repeating.isChecked())
@@ -360,14 +403,18 @@ public class AddTaskActivity extends SherlockActivity implements
 			
 		case R.id.checkbox_stop_repeating:
 			if (isChecked) {
-				edit_stop_repeating_date.setEnabled(true);
-				stop_repeating_date.setEnabled(true);
+				// Make edit button and textview visible
+				edit_stop_repeating_date.setVisibility(View.VISIBLE);
+				stop_repeating_date.setVisibility(View.VISIBLE);
 				stop_repeating_date.setText(DateFormat.format("'Ends:' MM/dd/yy 'at' h:mm AA", 
 						stop_repeating_date_cal));
+				
+				// Pop up date-time dialog as if user had clicked edit button
+				onClick(edit_stop_repeating_date);
 			} else {
-				edit_stop_repeating_date.setEnabled(false);
-				stop_repeating_date.setEnabled(false);
-				stop_repeating_date.setText(R.string.text_no_stop_repeating_date);
+				// Hide edit button and textview
+				edit_stop_repeating_date.setVisibility(View.GONE);
+				stop_repeating_date.setVisibility(View.GONE);
 			}
 		}
 	}
